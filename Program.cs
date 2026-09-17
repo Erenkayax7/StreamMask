@@ -23,6 +23,11 @@ namespace DrmMaskApp
         public uint Key { get; set; }
         public Color BorderColor { get; set; }
 
+        private string GetConfigPath()
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
+        }
+
         public AppConfig()
         {
             // Varsayılan: Ctrl + Shift + Z
@@ -36,12 +41,8 @@ namespace DrmMaskApp
         {
             try
             {
-                string[] lines = {
-                    "Modifiers=" + Modifiers,
-                    "Key=" + Key,
-                    "Color=" + BorderColor.ToArgb()
-                };
-                File.WriteAllLines("config.txt", lines);
+                string json = string.Format("{{\r\n  \"Modifiers\": {0},\r\n  \"Key\": {1},\r\n  \"Color\": {2}\r\n}}", Modifiers, Key, BorderColor.ToArgb());
+                File.WriteAllText(GetConfigPath(), json);
             }
             catch {}
         }
@@ -50,21 +51,29 @@ namespace DrmMaskApp
         {
             try
             {
-                if (File.Exists("config.txt"))
+                string path = GetConfigPath();
+                if (File.Exists(path))
                 {
-                    string[] lines = File.ReadAllLines("config.txt");
-                    foreach (var line in lines)
+                    string content = File.ReadAllText(path);
+                    var modMatch = System.Text.RegularExpressions.Regex.Match(content, @"""Modifiers""\s*:\s*(\d+)");
+                    if (modMatch.Success)
                     {
-                        var parts = line.Split('=');
-                        if (parts.Length == 2)
-                        {
-                            uint mod;
-                            if (parts[0] == "Modifiers" && uint.TryParse(parts[1], out mod)) Modifiers = mod;
-                            uint k;
-                            if (parts[0] == "Key" && uint.TryParse(parts[1], out k)) Key = k;
-                            int c;
-                            if (parts[0] == "Color" && int.TryParse(parts[1], out c)) BorderColor = Color.FromArgb(c);
-                        }
+                        uint m;
+                        if (uint.TryParse(modMatch.Groups[1].Value, out m)) Modifiers = m;
+                    }
+
+                    var keyMatch = System.Text.RegularExpressions.Regex.Match(content, @"""Key""\s*:\s*(\d+)");
+                    if (keyMatch.Success)
+                    {
+                        uint k;
+                        if (uint.TryParse(keyMatch.Groups[1].Value, out k)) Key = k;
+                    }
+
+                    var colorMatch = System.Text.RegularExpressions.Regex.Match(content, @"""Color""\s*:\s*(-?\d+)");
+                    if (colorMatch.Success)
+                    {
+                        int c;
+                        if (int.TryParse(colorMatch.Groups[1].Value, out c)) BorderColor = Color.FromArgb(c);
                     }
                 }
             }
@@ -105,10 +114,17 @@ namespace DrmMaskApp
             OpenSettings();
         }
 
+        private SettingsForm settingsFormInstance;
+
         private void OpenSettings()
         {
-            SettingsForm sf = new SettingsForm(this);
-            sf.ShowDialog();
+            if (settingsFormInstance != null && !settingsFormInstance.IsDisposed)
+            {
+                settingsFormInstance.Activate();
+                return;
+            }
+            settingsFormInstance = new SettingsForm(this);
+            settingsFormInstance.Show();
         }
 
         public void ApplyConfig()
@@ -126,7 +142,9 @@ namespace DrmMaskApp
         {
             if (!NativeMethods.RegisterHotKey(msgWindow.Handle, 1, Config.Modifiers, Config.Key))
             {
-                System.IO.File.AppendAllText("log.txt", "Hotkey failed to register!\n");
+                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
+                File.AppendAllText(logPath, "Hotkey failed to register: " + Config.Key + "\n");
+                MessageBox.Show("Kısayol tuşu kaydedilemedi! Başka bir uygulama tarafından kullanılıyor olabilir.", "DrmMasker Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -375,7 +393,8 @@ namespace DrmMaskApp
             if (isDragging && e.Button == MouseButtons.Left)
             {
                 isDragging = false;
-                context.OnSelected(currentRect);
+                Rectangle screenRect = new Rectangle(currentRect.X + this.Left, currentRect.Y + this.Top, currentRect.Width, currentRect.Height);
+                context.OnSelected(screenRect);
             }
             else if (e.Button == MouseButtons.Right)
             {
