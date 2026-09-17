@@ -1,7 +1,7 @@
 ﻿<div align="center">
-  <a href="#english"><img src="https://flagcdn.com/h40/us.png" height="28" alt="English"></a>
+  <a href="#english"><img src="https://flagcdn.com/w40/us.png" width="36" height="24" alt="English"></a>
   &nbsp;&nbsp;&nbsp;
-  <a href="#türkçe"><img src="https://flagcdn.com/h40/tr.png" height="28" alt="Türkçe"></a>
+  <a href="#türkçe"><img src="https://flagcdn.com/w40/tr.png" width="36" height="24" alt="Türkçe"></a>
 </div>
 
 # DrmMasker
@@ -81,5 +81,6 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 4. Alan seçildikten sonra ilgili bölge yayına siyah gidecek, siz ise ince bir çerçeve göreceksiniz.
 5. Maskeyi kaldırmak için kısayol tuşuna tekrar basın.
 6. Kısayol veya renk ayarını değiştirmek için sistem tepsisindeki ikona sağ tıklayıp **Ayarlar**'a girebilirsiniz.
+
 
 
