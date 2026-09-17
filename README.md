@@ -7,7 +7,7 @@
 # DrmMasker
 
 <a id="english"></a>
-## 🇬🇧 English
+## 🇺🇸 English
 
 DrmMasker is a lightweight Windows desktop application that allows you to select a specific area of your screen and hide it from streaming and screen recording software (like OBS, Discord, etc.).
 Using the Windows WDA_MONITOR feature, the masked area appears as a solid black box on your stream, while you can still see and interact with the content completely transparently.
@@ -81,4 +81,5 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 4. Alan seçildikten sonra ilgili bölge yayına siyah gidecek, siz ise ince bir çerçeve göreceksiniz.
 5. Maskeyi kaldırmak için kısayol tuşuna tekrar basın.
 6. Kısayol veya renk ayarını değiştirmek için sistem tepsisindeki ikona sağ tıklayıp **Ayarlar**'a girebilirsiniz.
+
 
