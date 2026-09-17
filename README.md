@@ -21,6 +21,10 @@ Using the Windows WDA_MONITOR feature, the masked area appears as a solid black 
   - Customize the color of the selection border (visible only to you).
 - **Stream Security:** The masked region appears as a solid black box in capture tools, preventing leaks. The border itself is completely invisible to the stream.
 
+### Why StreamMask? (How is it different?)
+
+Unlike standard screen-blocking tools that just place a physical black window on your screen (which blocks **your** vision too), StreamMask uses the native Windows WDA_MONITOR API. This means the mask is completely **transparent to you**, allowing you to play games or read text normally, but appears as a **solid black box to OBS** and your viewers. Furthermore, you don't need a clunky separate control panel to place your masks—just press the hotkey and draw directly on your screen like the Snipping Tool!
+
 ### Build and Installation
 
 You can easily compile the project from source using the built-in .NET Framework:
@@ -58,6 +62,10 @@ Bu program, Windows'un WDA_MONITOR özelliğini kullanarak maskelenen alanın ya
   - Sizin ekranınızda görünen seçim çerçevesinin rengini dilediğiniz gibi ayarlayabilirsiniz.
 - **Yayın Güvenliği:** Maskelenen bölge, kayıt araçlarında tamamen siyah bir kutu olarak belirir ve içeriğin sızmasını engeller. Çerçevenin kendisi ise yayına gitmez.
 
+### Neden StreamMask? (Farkımız Ne?)
+
+Ekrana sadece fiziksel siyah bir pencere koyan (ve dolayısıyla **sizin kendi görüşünüzü de** kapatan) sıradan gizleme araçlarının aksine, StreamMask doğrudan Windows WDA_MONITOR API'sini kullanır. Bu sayede sansürlenen alan **size tamamen şeffaf görünür** ve altındaki oyunu oynayıp yazıları okuyabilirsiniz; ancak **OBS ve yayındaki izleyicileriniz sadece siyah bir kutu görür**. Ayrıca maskeyi yerleştirmek için ayrı bir harita/kontrol paneli ile uğraşmazsınız; kısayola basın ve tıpkı Ekran Alıntısı Aracı gibi doğrudan ekranınızın üzerinde saniyeler içinde çizin!
+
 ### Kurulum ve Derleme
 
 Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
@@ -77,6 +85,7 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 4. Alan seçildikten sonra ilgili bölge yayına siyah gidecek, siz ise ince bir çerçeve göreceksiniz.
 5. Maskeyi kaldırmak için kısayol tuşuna tekrar basın.
 6. Kısayol veya renk ayarını değiştirmek için sistem tepsisindeki ikona sağ tıklayıp **Ayarlar**'a girebilirsiniz.
+
 
 
 
