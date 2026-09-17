@@ -50,7 +50,7 @@ You can easily compile the project from source using the built-in .NET Framework
 <a id="türkçe"></a>
 ## 🇹🇷 Türkçe
 
-StreamMask, ekranınızın belirli bir alanını seçerek o bölgeyi yayın ve ekran kayıt programlarından (OBS vb.) gizlemenizi sağlayan bir masaüstü uygulamasıdır. 
+StreamMask, ekranınızın belirli bir alanını seçerek o bölgeyi yayın ve ekran kayıt programlarından (OBS, Discord vb.) gizlemenizi sağlayan bir masaüstü uygulamasıdır. 
 Bu program, Windows'un WDA_MONITOR özelliğini kullanarak maskelenen alanın yayınlanan ekranda siyah görünmesini sağlarken, sizin o alanı (neredeyse tamamen saydam olarak) görmeye devam etmenize olanak tanır.
 
 ### Özellikler
@@ -64,7 +64,7 @@ Bu program, Windows'un WDA_MONITOR özelliğini kullanarak maskelenen alanın ya
 
 ### Neden StreamMask? (Farkımız Ne?)
 
-Ekrana sadece fiziksel siyah bir pencere koyan (ve dolayısıyla **sizin kendi görüşünüzü de** kapatan) sıradan gizleme araçlarının aksine, StreamMask doğrudan Windows WDA_MONITOR API'sini kullanır. Bu sayede sansürlenen alan **size tamamen şeffaf görünür** ve altındaki oyunu oynayıp yazıları okuyabilirsiniz; ancak **OBS ve yayındaki izleyicileriniz sadece siyah bir kutu görür**. Ayrıca maskeyi yerleştirmek için ayrı bir harita/kontrol paneli ile uğraşmazsınız; kısayola basın ve tıpkı Ekran Alıntısı Aracı gibi doğrudan ekranınızın üzerinde saniyeler içinde çizin!
+Ekrana sadece fiziksel siyah bir pencere koyan (ve dolayısıyla **sizin kendi görüşünüzü de** kapatan) sıradan gizleme araçlarının aksine, StreamMask doğrudan Windows WDA_MONITOR API'sini kullanır. Bu sayede sansürlenen alan **size tamamen şeffaf görünür** ve altındaki oyunu oynayıp yazıları okuyabilirsiniz; ancak **OBS, Discord ve yayındaki izleyicileriniz sadece siyah bir kutu görür**. Ayrıca maskeyi yerleştirmek için ayrı bir harita/kontrol paneli ile uğraşmazsınız; kısayola basın ve tıpkı Ekran Alıntısı Aracı gibi doğrudan ekranınızın üzerinde saniyeler içinde çizin!
 
 ### Kurulum ve Derleme
 
@@ -85,6 +85,7 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 4. Alan seçildikten sonra ilgili bölge yayına siyah gidecek, siz ise ince bir çerçeve göreceksiniz.
 5. Maskeyi kaldırmak için kısayol tuşuna tekrar basın.
 6. Kısayol veya renk ayarını değiştirmek için sistem tepsisindeki ikona sağ tıklayıp **Ayarlar**'a girebilirsiniz.
+
 
 
 
