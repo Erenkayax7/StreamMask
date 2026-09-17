@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.IO;
@@ -13,7 +14,14 @@ namespace StreamMaskApp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new AppContext());
+            try
+            {
+                Application.Run(new AppContext());
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText("crash.log", ex.ToString());
+            }
         }
     }
 
@@ -22,6 +30,8 @@ namespace StreamMaskApp
         public uint Modifiers { get; set; }
         public uint Key { get; set; }
         public Color BorderColor { get; set; }
+        public int BorderThickness { get; set; }
+        public string Theme { get; set; }
 
         private string GetConfigPath()
         {
@@ -30,18 +40,19 @@ namespace StreamMaskApp
 
         public AppConfig()
         {
-            // VarsayÄ±lan: Ctrl + Shift + Z
-            // MOD_CONTROL = 0x0002, MOD_SHIFT = 0x0004 => 0x0006
-            Modifiers = 0x0006;
-            Key = 0x5A; // Keys.Z
+            Modifiers = 0x0006; // Ctrl + Shift
+            Key = 0x5A; // Z
             BorderColor = Color.Red;
+            BorderThickness = 2;
+            Theme = "Dark";
         }
 
         public void Save()
         {
             try
             {
-                string json = string.Format("{{\r\n  \"Modifiers\": {0},\r\n  \"Key\": {1},\r\n  \"Color\": {2}\r\n}}", Modifiers, Key, BorderColor.ToArgb());
+                string json = string.Format("{{\r\n  \"Modifiers\": {0},\r\n  \"Key\": {1},\r\n  \"Color\": {2},\r\n  \"BorderThickness\": {3},\r\n  \"Theme\": \"{4}\"\r\n}}",
+                    Modifiers, Key, BorderColor.ToArgb(), BorderThickness, Theme);
                 File.WriteAllText(GetConfigPath(), json);
             }
             catch {}
@@ -56,25 +67,19 @@ namespace StreamMaskApp
                 {
                     string content = File.ReadAllText(path);
                     var modMatch = System.Text.RegularExpressions.Regex.Match(content, @"""Modifiers""\s*:\s*(\d+)");
-                    if (modMatch.Success)
-                    {
-                        uint m;
-                        if (uint.TryParse(modMatch.Groups[1].Value, out m)) Modifiers = m;
-                    }
+                    uint m; if (modMatch.Success && uint.TryParse(modMatch.Groups[1].Value, out m)) Modifiers = m;
 
                     var keyMatch = System.Text.RegularExpressions.Regex.Match(content, @"""Key""\s*:\s*(\d+)");
-                    if (keyMatch.Success)
-                    {
-                        uint k;
-                        if (uint.TryParse(keyMatch.Groups[1].Value, out k)) Key = k;
-                    }
+                    uint k; if (keyMatch.Success && uint.TryParse(keyMatch.Groups[1].Value, out k)) Key = k;
 
                     var colorMatch = System.Text.RegularExpressions.Regex.Match(content, @"""Color""\s*:\s*(-?\d+)");
-                    if (colorMatch.Success)
-                    {
-                        int c;
-                        if (int.TryParse(colorMatch.Groups[1].Value, out c)) BorderColor = Color.FromArgb(c);
-                    }
+                    int c; if (colorMatch.Success && int.TryParse(colorMatch.Groups[1].Value, out c)) BorderColor = Color.FromArgb(c);
+
+                    var thickMatch = System.Text.RegularExpressions.Regex.Match(content, @"""BorderThickness""\s*:\s*(\d+)");
+                    int t; if (thickMatch.Success && int.TryParse(thickMatch.Groups[1].Value, out t)) BorderThickness = Math.Max(1, Math.Min(10, t));
+
+                    var themeMatch = System.Text.RegularExpressions.Regex.Match(content, @"""Theme""\s*:\s*""([^""]+)""");
+                    if (themeMatch.Success) Theme = themeMatch.Groups[1].Value;
                 }
             }
             catch {}
@@ -86,40 +91,71 @@ namespace StreamMaskApp
         private MessageWindow msgWindow;
         private SelectionForm selectionForm;
         private MaskForm maskForm;
-        private bool isMasking = false;
         private NotifyIcon trayIcon;
+        private bool isMasking = false;
+        private SettingsForm settingsFormInstance = null;
+
         public AppConfig Config { get; private set; }
 
-        public AppContext() {
+        public AppContext()
+        {
             Config = new AppConfig();
             Config.Load();
 
-            trayIcon = new NotifyIcon();
-            trayIcon.Icon = SystemIcons.Application; // Basit bir ikon
-            trayIcon.Visible = true;
-            trayIcon.Text = "StreamMasker";
-            trayIcon.DoubleClick += TrayIcon_DoubleClick;
-
-            ContextMenu menu = new ContextMenu();
-            menu.MenuItems.Add("Ayarlar", (s, e) => OpenSettings());
-            menu.MenuItems.Add("Ã‡Ä±kÄ±ÅŸ", (s, e) => Application.Exit());
-            trayIcon.ContextMenu = menu;
-
             msgWindow = new MessageWindow(this);
-            RegisterHotkey();
+            RegisterAppHotkey();
+            InitializeTrayIcon();
         }
 
-        private void TrayIcon_DoubleClick(object sender, EventArgs e)
+        public bool RegisterAppHotkey()
         {
-            OpenSettings();
+            NativeMethods.UnregisterHotKey(msgWindow.Handle, 1);
+            bool success = NativeMethods.RegisterHotKey(msgWindow.Handle, 1, Config.Modifiers, Config.Key);
+            if (!success)
+            {
+                MessageBox.Show("The selected hotkey could not be registered! Another application might be using it.", "Hotkey Conflict", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            return success;
         }
 
-        private SettingsForm settingsFormInstance;
+        private void InitializeTrayIcon()
+        {
+            trayIcon = new NotifyIcon();
+            Bitmap bmp = new Bitmap(16, 16);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                using (Brush b = new SolidBrush(Color.Red))
+                {
+                    g.FillRectangle(b, 2, 4, 12, 8);
+                }
+                using (Brush b = new SolidBrush(Color.Black))
+                {
+                    g.FillEllipse(b, 4, 6, 3, 3);
+                    g.FillEllipse(b, 9, 6, 3, 3);
+                }
+            }
+            trayIcon.Icon = Icon.FromHandle(bmp.GetHicon());
+            trayIcon.Text = "StreamMask";
+            trayIcon.Visible = true;
 
-        private void OpenSettings()
+            ContextMenuStrip menu = new ContextMenuStrip();
+            ToolStripMenuItem itemSettings = new ToolStripMenuItem("Settings", null, (s, e) => OpenSettings());
+            ToolStripMenuItem itemExit = new ToolStripMenuItem("Exit", null, (s, e) => Application.Exit());
+
+            menu.Items.Add(itemSettings);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(itemExit);
+
+            trayIcon.ContextMenuStrip = menu;
+            trayIcon.DoubleClick += (s, e) => OpenSettings();
+        }
+
+        public void OpenSettings()
         {
             if (settingsFormInstance != null && !settingsFormInstance.IsDisposed)
             {
+                settingsFormInstance.BringToFront();
                 settingsFormInstance.Activate();
                 return;
             }
@@ -127,51 +163,27 @@ namespace StreamMaskApp
             settingsFormInstance.Show();
         }
 
-        public void ApplyConfig()
+        public void HandleHotkey()
         {
-            NativeMethods.UnregisterHotKey(msgWindow.Handle, 1);
-            RegisterHotkey();
-
-            if (maskForm != null)
-            {
-                maskForm.UpdateBorderColor(Config.BorderColor);
-            }
-        }
-
-        private void RegisterHotkey()
-        {
-            if (!NativeMethods.RegisterHotKey(msgWindow.Handle, 1, Config.Modifiers, Config.Key))
-            {
-                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
-                File.AppendAllText(logPath, "Hotkey failed to register: " + Config.Key + "\n");
-                MessageBox.Show("KÄ±sayol tuÅŸu kaydedilemedi! BaÅŸka bir uygulama tarafÄ±ndan kullanÄ±lÄ±yor olabilir.", "StreamMasker Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        public void HandleHotkey() 
-        { 
-            System.Media.SystemSounds.Beep.Play();
             if (isMasking || maskForm != null)
             {
                 StopMasking();
             }
-            else if (selectionForm == null)
-            {
-                StartSelection();
-            }
             else
             {
-                selectionForm.Close();
-                selectionForm = null;
+                StartSelection();
             }
         }
 
         private void StartSelection()
         {
-            selectionForm = new SelectionForm(this);
-            selectionForm.Show(); 
-            selectionForm.Activate(); 
-            selectionForm.Focus();
+            if (selectionForm == null)
+            {
+                selectionForm = new SelectionForm(this);
+                selectionForm.Show();
+                selectionForm.Activate();
+                selectionForm.Focus();
+            }
         }
 
         public void OnSelected(Rectangle rect)
@@ -184,7 +196,7 @@ namespace StreamMaskApp
 
             if (rect.Width > 10 && rect.Height > 10)
             {
-                maskForm = new MaskForm(rect, Config.BorderColor);
+                maskForm = new MaskForm(rect, Config.BorderColor, Config.BorderThickness);
                 maskForm.Show();
                 isMasking = true;
             }
@@ -200,7 +212,8 @@ namespace StreamMaskApp
             isMasking = false;
         }
 
-        protected override void ExitThreadCore() {
+        protected override void ExitThreadCore()
+        {
             if (trayIcon != null)
             {
                 trayIcon.Visible = false;
@@ -218,67 +231,208 @@ namespace StreamMaskApp
     public class SettingsForm : Form
     {
         private AppContext context;
-        private TextBox txtHotkey;
+        private Button btnHotkey;
         private Button btnColor;
+        private TrackBar trackThickness;
+        private Label lblThicknessVal;
+        private ComboBox cmbTheme;
+        private Panel pnlPreview;
         private Button btnSave;
-        
+        private Button btnCancel;
+
+        private Label lblPreviewTitle;
+        private Label lblHotkeyTitle;
+        private Label lblColorTitle;
+        private Label lblThicknessTitle;
+        private Label lblThemeTitle;
+
         private uint tempModifiers;
         private uint tempKey;
         private Color tempColor;
+        private int tempThickness;
+        private string tempTheme;
+
+        private bool isListeningHotkey = false;
 
         public SettingsForm(AppContext context)
         {
             this.context = context;
-            this.Text = "StreamMasker AyarlarÄ±";
-            this.Size = new Size(300, 200);
+            this.Text = "StreamMask - Settings";
+            this.Size = new Size(390, 470);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.TopMost = true;
+            this.KeyPreview = true;
 
             tempModifiers = context.Config.Modifiers;
             tempKey = context.Config.Key;
             tempColor = context.Config.BorderColor;
+            tempThickness = context.Config.BorderThickness;
+            tempTheme = string.IsNullOrEmpty(context.Config.Theme) ? "Dark" : context.Config.Theme;
 
-            Label lblHotkey = new Label() { Text = "KÄ±sayol TuÅŸu:", Location = new Point(20, 25), AutoSize = true };
-            txtHotkey = new TextBox() { Location = new Point(120, 22), Width = 140, ReadOnly = true };
-            txtHotkey.Text = GetHotkeyString(tempModifiers, (Keys)tempKey);
-            txtHotkey.KeyDown += TxtHotkey_KeyDown;
-
-            Label lblInfo = new Label() { Text = "(DeÄŸiÅŸtirmek iÃ§in kutuya tÄ±klayÄ±p tuÅŸa basÄ±n)", Location = new Point(20, 50), AutoSize = true, ForeColor = Color.Gray };
-
-            Label lblColor = new Label() { Text = "Ã‡erÃ§eve Rengi:", Location = new Point(20, 85), AutoSize = true };
-            btnColor = new Button() { Location = new Point(120, 80), Width = 60, Height = 25, BackColor = tempColor, FlatStyle = FlatStyle.Flat };
-            btnColor.Click += BtnColor_Click;
-
-            btnSave = new Button() { Text = "Kaydet", Location = new Point(100, 125), Width = 80 };
-            btnSave.Click += BtnSave_Click;
-
-            this.Controls.Add(lblHotkey);
-            this.Controls.Add(txtHotkey);
-            this.Controls.Add(lblInfo);
-            this.Controls.Add(lblColor);
-            this.Controls.Add(btnColor);
-            this.Controls.Add(btnSave);
+            InitializeComponents();
+            ApplyTheme(tempTheme);
+            this.KeyDown += SettingsForm_KeyDown;
         }
 
-        private void TxtHotkey_KeyDown(object sender, KeyEventArgs e)
+        private void InitializeComponents()
         {
+            lblPreviewTitle = new Label() { Text = "LIVE PREVIEW", Font = new Font("Segoe UI", 8.5f, FontStyle.Bold), Location = new Point(20, 15), AutoSize = true };
+            pnlPreview = new Panel() { Location = new Point(20, 38), Size = new Size(335, 80), BorderStyle = BorderStyle.None };
+            pnlPreview.Paint += PnlPreview_Paint;
+
+            lblHotkeyTitle = new Label() { Text = "Hotkey:", Font = new Font("Segoe UI", 9f), Location = new Point(20, 135), AutoSize = true };
+            btnHotkey = new Button() { Location = new Point(140, 130), Size = new Size(215, 32), Font = new Font("Segoe UI", 9f, FontStyle.Bold), Text = GetHotkeyString(tempModifiers, (Keys)tempKey), FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
+            btnHotkey.FlatAppearance.BorderSize = 1;
+            btnHotkey.Click += BtnHotkey_Click;
+
+            lblColorTitle = new Label() { Text = "Border Color:", Font = new Font("Segoe UI", 9f), Location = new Point(20, 182), AutoSize = true };
+            btnColor = new Button() { Location = new Point(140, 175), Size = new Size(215, 32), Font = new Font("Segoe UI", 9f), Text = "Select Color...", FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
+            btnColor.FlatAppearance.BorderSize = 1;
+            btnColor.Click += BtnColor_Click;
+
+            lblThicknessTitle = new Label() { Text = "Border Thickness:", Font = new Font("Segoe UI", 9f), Location = new Point(20, 230), AutoSize = true };
+            trackThickness = new TrackBar() { Location = new Point(135, 225), Size = new Size(170, 35), Minimum = 1, Maximum = 10, Value = tempThickness, TickStyle = TickStyle.None };
+            trackThickness.ValueChanged += (s, e) => { tempThickness = trackThickness.Value; lblThicknessVal.Text = tempThickness.ToString() + " px"; pnlPreview.Invalidate(); };
+            
+            lblThicknessVal = new Label() { Text = tempThickness.ToString() + " px", Font = new Font("Segoe UI", 9f, FontStyle.Bold), Location = new Point(312, 230), AutoSize = true };
+            lblThemeTitle = new Label() { Text = "Theme:", Font = new Font("Segoe UI", 9f), Location = new Point(20, 280), AutoSize = true };
+            cmbTheme = new ComboBox() { Location = new Point(140, 277), Size = new Size(215, 28), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9f) };
+            cmbTheme.Items.AddRange(new object[] { "Dark Theme", "Light Theme" });
+            cmbTheme.SelectedIndex = tempTheme == "Light" ? 1 : 0;
+            cmbTheme.SelectedIndexChanged += (s, e) => { tempTheme = cmbTheme.SelectedIndex == 1 ? "Light" : "Dark"; ApplyTheme(tempTheme); };
+
+            btnSave = new Button() { Text = "Save", Font = new Font("Segoe UI", 9f, FontStyle.Bold), Location = new Point(155, 370), Size = new Size(95, 34), FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
+            btnSave.FlatAppearance.BorderSize = 0;
+            btnSave.Click += BtnSave_Click;
+
+            btnCancel = new Button() { Text = "Cancel", Font = new Font("Segoe UI", 9f), Location = new Point(260, 370), Size = new Size(95, 34), FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
+            btnCancel.FlatAppearance.BorderSize = 1;
+            btnCancel.Click += (s, e) => this.Close();
+
+            this.Controls.Add(lblPreviewTitle);
+            this.Controls.Add(pnlPreview);
+            this.Controls.Add(lblHotkeyTitle);
+            this.Controls.Add(btnHotkey);
+            this.Controls.Add(lblColorTitle);
+            this.Controls.Add(btnColor);
+            this.Controls.Add(lblThicknessTitle);
+            this.Controls.Add(trackThickness);
+            this.Controls.Add(lblThicknessVal);
+            this.Controls.Add(lblThemeTitle);
+            this.Controls.Add(cmbTheme);
+            this.Controls.Add(btnSave);
+            this.Controls.Add(btnCancel);
+        }
+
+        private void PnlPreview_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            Color previewBg = tempTheme == "Dark" ? Color.FromArgb(45, 45, 48) : Color.FromArgb(240, 240, 245);
+            g.Clear(previewBg);
+
+            Rectangle outer = new Rectangle(15, 12, pnlPreview.Width - 30, pnlPreview.Height - 24);
+            using (Brush b = new SolidBrush(tempTheme == "Dark" ? Color.FromArgb(28, 28, 28) : Color.White))
+            {
+                g.FillRectangle(b, outer);
+            }
+
+            using (Font f = new Font("Segoe UI", 8.5f, FontStyle.Italic))
+            using (Brush tb = new SolidBrush(tempTheme == "Dark" ? Color.FromArgb(170, 170, 170) : Color.FromArgb(90, 90, 90)))
+            {
+                string txt = string.Format("Masked Area (OBS: Black | You: Transparent + {0}px Border)", tempThickness);
+                StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                g.DrawString(txt, f, tb, outer, sf);
+            }
+
+            using (Pen p = new Pen(tempColor, tempThickness))
+            {
+                p.Alignment = PenAlignment.Inset;
+                g.DrawRectangle(p, outer);
+            }
+        }
+
+        private void ApplyTheme(string theme)
+        {
+            bool isDark = theme == "Dark";
+
+            Color bg = isDark ? Color.FromArgb(32, 32, 32) : Color.FromArgb(243, 243, 243);
+            Color fg = isDark ? Color.White : Color.FromArgb(20, 20, 20);
+            Color inputBg = isDark ? Color.FromArgb(45, 45, 48) : Color.White;
+            Color borderColor = isDark ? Color.FromArgb(65, 65, 65) : Color.FromArgb(200, 200, 200);
+
+            this.BackColor = bg;
+            this.ForeColor = fg;
+
+            lblPreviewTitle.ForeColor = isDark ? Color.FromArgb(0, 120, 215) : Color.FromArgb(0, 102, 204);
+            lblHotkeyTitle.ForeColor = fg;
+            lblColorTitle.ForeColor = fg;
+            lblThicknessTitle.ForeColor = fg;
+            lblThicknessVal.ForeColor = fg;
+            lblThemeTitle.ForeColor = fg;
+
+            btnHotkey.BackColor = inputBg;
+            btnHotkey.ForeColor = fg;
+            btnHotkey.FlatAppearance.BorderColor = borderColor;
+
+            btnColor.BackColor = inputBg;
+            btnColor.ForeColor = fg;
+            btnColor.FlatAppearance.BorderColor = borderColor;
+
+            cmbTheme.BackColor = inputBg;
+            cmbTheme.ForeColor = fg;
+
+            btnSave.BackColor = Color.FromArgb(0, 120, 215);
+            btnSave.ForeColor = Color.White;
+
+            btnCancel.BackColor = inputBg;
+            btnCancel.ForeColor = fg;
+            btnCancel.FlatAppearance.BorderColor = borderColor;
+
+            pnlPreview.Invalidate();
+        }
+
+        private void BtnHotkey_Click(object sender, EventArgs e)
+        {
+            isListeningHotkey = true;
+            btnHotkey.Text = ". . .";
+            btnHotkey.BackColor = Color.FromArgb(0, 120, 215);
+            btnHotkey.ForeColor = Color.White;
+        }
+
+        private void SettingsForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (!isListeningHotkey) return;
+
             e.SuppressKeyPress = true;
             Keys key = e.KeyCode;
+
             if (key == Keys.ShiftKey || key == Keys.ControlKey || key == Keys.Menu || key == Keys.LWin || key == Keys.RWin)
-                return; // Sadece modifier basÄ±ldÄ±ysa bekle
+                return;
+
+            if (key == Keys.Escape)
+            {
+                isListeningHotkey = false;
+                btnHotkey.Text = GetHotkeyString(tempModifiers, (Keys)tempKey);
+                ApplyTheme(tempTheme);
+                return;
+            }
 
             uint modifiers = 0;
-            if (e.Shift) modifiers |= 0x0004; // MOD_SHIFT
-            if (e.Control) modifiers |= 0x0002; // MOD_CONTROL
-            if (e.Alt) modifiers |= 0x0001; // MOD_ALT
-            
+            if (e.Shift) modifiers |= 0x0004;
+            if (e.Control) modifiers |= 0x0002;
+            if (e.Alt) modifiers |= 0x0001;
+
             tempModifiers = modifiers;
             tempKey = (uint)key;
-            
-            txtHotkey.Text = GetHotkeyString(tempModifiers, key);
+            isListeningHotkey = false;
+
+            btnHotkey.Text = GetHotkeyString(tempModifiers, key);
+            ApplyTheme(tempTheme);
         }
 
         private void BtnColor_Click(object sender, EventArgs e)
@@ -286,10 +440,11 @@ namespace StreamMaskApp
             using (ColorDialog cd = new ColorDialog())
             {
                 cd.Color = tempColor;
-                if (cd.ShowDialog() == DialogResult.OK)
+                cd.FullOpen = true;
+                if (cd.ShowDialog(this) == DialogResult.OK)
                 {
                     tempColor = cd.Color;
-                    btnColor.BackColor = tempColor;
+                    pnlPreview.Invalidate();
                 }
             }
         }
@@ -299,8 +454,11 @@ namespace StreamMaskApp
             context.Config.Modifiers = tempModifiers;
             context.Config.Key = tempKey;
             context.Config.BorderColor = tempColor;
+            context.Config.BorderThickness = tempThickness;
+            context.Config.Theme = tempTheme;
             context.Config.Save();
-            context.ApplyConfig();
+
+            context.RegisterAppHotkey();
             this.Close();
         }
 
@@ -336,8 +494,18 @@ namespace StreamMaskApp
         }
     }
 
-    class SelectionForm : Form { 
-        protected override CreateParams CreateParams { get { CreateParams cp = base.CreateParams; cp.ExStyle |= 0x80; return cp; } }
+    class SelectionForm : Form
+    {
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= 0x80;
+                return cp;
+            }
+        }
+
         private AppContext context;
         private Point startPoint;
         private Rectangle currentRect;
@@ -350,9 +518,10 @@ namespace StreamMaskApp
             this.StartPosition = FormStartPosition.Manual;
             this.TopMost = true;
             this.BackColor = Color.Black;
-            this.Opacity = 0.3; // YarÄ± saydam
+            this.Opacity = 0.3;
             this.Cursor = Cursors.Cross;
-            this.DoubleBuffered = true; this.KeyPreview = true;
+            this.DoubleBuffered = true;
+            this.KeyPreview = true;
             this.ShowInTaskbar = false;
 
             Rectangle bounds = Rectangle.Empty;
@@ -390,13 +559,18 @@ namespace StreamMaskApp
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            if (isDragging && e.Button == MouseButtons.Left)
+            if (isDragging)
             {
                 isDragging = false;
-                Rectangle screenRect = new Rectangle(currentRect.X + this.Left, currentRect.Y + this.Top, currentRect.Width, currentRect.Height);
+                Rectangle screenRect = new Rectangle(
+                    this.Left + currentRect.X,
+                    this.Top + currentRect.Y,
+                    currentRect.Width,
+                    currentRect.Height
+                );
                 context.OnSelected(screenRect);
             }
-            else if (e.Button == MouseButtons.Right)
+            else
             {
                 context.OnSelected(Rectangle.Empty);
             }
@@ -408,7 +582,7 @@ namespace StreamMaskApp
             base.OnPaint(e);
             if (isDragging && currentRect.Width > 0 && currentRect.Height > 0)
             {
-                using (Pen pen = new Pen(Color.Red, 2))
+                using (Pen pen = new Pen(context.Config.BorderColor, context.Config.BorderThickness))
                 {
                     e.Graphics.DrawRectangle(pen, currentRect);
                 }
@@ -442,72 +616,69 @@ namespace StreamMaskApp
     {
         private ClickThroughForm fillForm;
         private Color borderColor;
+        private int borderThickness;
 
-        public MaskForm(Rectangle rect, Color borderColor)
+        public MaskForm(Rectangle rect, Color borderColor, int borderThickness)
         {
             this.borderColor = borderColor;
+            this.borderThickness = borderThickness;
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.Manual;
             this.Bounds = rect;
             this.TopMost = true;
             this.ShowInTaskbar = false;
             
-            // TÄ±klama-geÃ§irgen ve transparan olmasÄ± iÃ§in (Ã‡erÃ§eve)
             this.BackColor = Color.Magenta;
             this.TransparencyKey = Color.Magenta;
 
+            // Dış sınır için
             this.HandleCreated += MaskForm_HandleCreated;
             
-            // Ä°Ã§ini dolduran ve OBS'te siyah gÃ¶rÃ¼necek form
             fillForm = new ClickThroughForm();
             fillForm.FormBorderStyle = FormBorderStyle.None;
             fillForm.StartPosition = FormStartPosition.Manual;
             fillForm.Bounds = rect;
             fillForm.TopMost = true;
             fillForm.ShowInTaskbar = false;
-            fillForm.BackColor = Color.Black;
-            // DWM'nin pencereyi Ã§izmesi ama kullanÄ±cÄ±nÄ±n neredeyse hiÃ§ gÃ¶rmemesi iÃ§in %1 opaklÄ±k
-            fillForm.Opacity = 0.01; 
             
-            fillForm.HandleCreated += FillForm_HandleCreated;
-        }
+            // WDA_MONITOR requires Opacity=0.01 and BackColor=Black to appear solid black on OBS
+            fillForm.BackColor = Color.Lime;
+            fillForm.TransparencyKey = Color.Lime;
 
-        public void UpdateBorderColor(Color newColor)
-        {
-            this.borderColor = newColor;
-            this.Invalidate();
-        }
+            fillForm.HandleCreated += (s, e) => {
+                NativeMethods.SetWindowDisplayAffinity(fillForm.Handle, NativeMethods.WDA_MONITOR);
+            };
 
-        public new void Show()
-        {
-            fillForm.Show();
-            base.Show(); // Ã‡erÃ§eveyi Ã¼stte gÃ¶ster
-        }
-
-        public new void Close()
-        {
-            fillForm.Close();
-            base.Close();
-        }
-
-        private void FillForm_HandleCreated(object sender, EventArgs e)
-        {
-            // YayÄ±nda siyah (DRM maskesi) olarak gÃ¶rÃ¼nmesi iÃ§in WDA_MONITOR
-            NativeMethods.SetWindowDisplayAffinity(fillForm.Handle, NativeMethods.WDA_MONITOR);
+            this.FormClosing += (s, e) => {
+                if (fillForm != null)
+                {
+                    fillForm.Close();
+                    fillForm = null;
+                }
+            };
         }
 
         private void MaskForm_HandleCreated(object sender, EventArgs e)
         {
-            // Ã‡erÃ§evenin OBS'te hiÃ§ gÃ¶rÃ¼nmemesi iÃ§in WDA_EXCLUDEFROMCAPTURE
             NativeMethods.SetWindowDisplayAffinity(this.Handle, NativeMethods.WDA_EXCLUDEFROMCAPTURE);
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            if (fillForm != null && !fillForm.Visible)
+            {
+                fillForm.Show();
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            using (Pen pen = new Pen(borderColor, 2))
+            using (Pen pen = new Pen(borderColor, borderThickness))
             {
-                e.Graphics.DrawRectangle(pen, 1, 1, this.Width - 2, this.Height - 2);
+                pen.Alignment = PenAlignment.Inset;
+                e.Graphics.DrawRectangle(pen, 0, 0, this.Width, this.Height);
             }
         }
     }
@@ -521,21 +692,16 @@ namespace StreamMaskApp
         public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         [DllImport("user32.dll")]
-        public static extern uint SetWindowDisplayAffinity(IntPtr hwnd, uint dwAffinity);
+        public static extern uint SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
 
         public const uint WDA_NONE = 0x00000000;
         public const uint WDA_MONITOR = 0x00000001;
         public const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-        [DllImport("user32.dll")]
-        public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-
-        public const int GWL_EXSTYLE = -20;
         public const int WS_EX_LAYERED = 0x80000;
         public const int WS_EX_TRANSPARENT = 0x20;
     }
 }
+
+
 
