@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.IO;
 
-namespace DrmMaskApp
+namespace StreamMaskApp
 {
     static class Program
     {
@@ -30,7 +30,7 @@ namespace DrmMaskApp
 
         public AppConfig()
         {
-            // Varsayılan: Ctrl + Shift + Z
+            // VarsayÄ±lan: Ctrl + Shift + Z
             // MOD_CONTROL = 0x0002, MOD_SHIFT = 0x0004 => 0x0006
             Modifiers = 0x0006;
             Key = 0x5A; // Keys.Z
@@ -97,12 +97,12 @@ namespace DrmMaskApp
             trayIcon = new NotifyIcon();
             trayIcon.Icon = SystemIcons.Application; // Basit bir ikon
             trayIcon.Visible = true;
-            trayIcon.Text = "DrmMasker";
+            trayIcon.Text = "StreamMasker";
             trayIcon.DoubleClick += TrayIcon_DoubleClick;
 
             ContextMenu menu = new ContextMenu();
             menu.MenuItems.Add("Ayarlar", (s, e) => OpenSettings());
-            menu.MenuItems.Add("Çıkış", (s, e) => Application.Exit());
+            menu.MenuItems.Add("Ã‡Ä±kÄ±ÅŸ", (s, e) => Application.Exit());
             trayIcon.ContextMenu = menu;
 
             msgWindow = new MessageWindow(this);
@@ -144,7 +144,7 @@ namespace DrmMaskApp
             {
                 string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
                 File.AppendAllText(logPath, "Hotkey failed to register: " + Config.Key + "\n");
-                MessageBox.Show("Kısayol tuşu kaydedilemedi! Başka bir uygulama tarafından kullanılıyor olabilir.", "DrmMasker Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("KÄ±sayol tuÅŸu kaydedilemedi! BaÅŸka bir uygulama tarafÄ±ndan kullanÄ±lÄ±yor olabilir.", "StreamMasker Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -229,7 +229,7 @@ namespace DrmMaskApp
         public SettingsForm(AppContext context)
         {
             this.context = context;
-            this.Text = "DrmMasker Ayarları";
+            this.Text = "StreamMasker AyarlarÄ±";
             this.Size = new Size(300, 200);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -241,14 +241,14 @@ namespace DrmMaskApp
             tempKey = context.Config.Key;
             tempColor = context.Config.BorderColor;
 
-            Label lblHotkey = new Label() { Text = "Kısayol Tuşu:", Location = new Point(20, 25), AutoSize = true };
+            Label lblHotkey = new Label() { Text = "KÄ±sayol TuÅŸu:", Location = new Point(20, 25), AutoSize = true };
             txtHotkey = new TextBox() { Location = new Point(120, 22), Width = 140, ReadOnly = true };
             txtHotkey.Text = GetHotkeyString(tempModifiers, (Keys)tempKey);
             txtHotkey.KeyDown += TxtHotkey_KeyDown;
 
-            Label lblInfo = new Label() { Text = "(Değiştirmek için kutuya tıklayıp tuşa basın)", Location = new Point(20, 50), AutoSize = true, ForeColor = Color.Gray };
+            Label lblInfo = new Label() { Text = "(DeÄŸiÅŸtirmek iÃ§in kutuya tÄ±klayÄ±p tuÅŸa basÄ±n)", Location = new Point(20, 50), AutoSize = true, ForeColor = Color.Gray };
 
-            Label lblColor = new Label() { Text = "Çerçeve Rengi:", Location = new Point(20, 85), AutoSize = true };
+            Label lblColor = new Label() { Text = "Ã‡erÃ§eve Rengi:", Location = new Point(20, 85), AutoSize = true };
             btnColor = new Button() { Location = new Point(120, 80), Width = 60, Height = 25, BackColor = tempColor, FlatStyle = FlatStyle.Flat };
             btnColor.Click += BtnColor_Click;
 
@@ -268,7 +268,7 @@ namespace DrmMaskApp
             e.SuppressKeyPress = true;
             Keys key = e.KeyCode;
             if (key == Keys.ShiftKey || key == Keys.ControlKey || key == Keys.Menu || key == Keys.LWin || key == Keys.RWin)
-                return; // Sadece modifier basıldıysa bekle
+                return; // Sadece modifier basÄ±ldÄ±ysa bekle
 
             uint modifiers = 0;
             if (e.Shift) modifiers |= 0x0004; // MOD_SHIFT
@@ -350,7 +350,7 @@ namespace DrmMaskApp
             this.StartPosition = FormStartPosition.Manual;
             this.TopMost = true;
             this.BackColor = Color.Black;
-            this.Opacity = 0.3; // Yarı saydam
+            this.Opacity = 0.3; // YarÄ± saydam
             this.Cursor = Cursors.Cross;
             this.DoubleBuffered = true; this.KeyPreview = true;
             this.ShowInTaskbar = false;
@@ -452,13 +452,13 @@ namespace DrmMaskApp
             this.TopMost = true;
             this.ShowInTaskbar = false;
             
-            // Tıklama-geçirgen ve transparan olması için (Çerçeve)
+            // TÄ±klama-geÃ§irgen ve transparan olmasÄ± iÃ§in (Ã‡erÃ§eve)
             this.BackColor = Color.Magenta;
             this.TransparencyKey = Color.Magenta;
 
             this.HandleCreated += MaskForm_HandleCreated;
             
-            // İçini dolduran ve OBS'te siyah görünecek form
+            // Ä°Ã§ini dolduran ve OBS'te siyah gÃ¶rÃ¼necek form
             fillForm = new ClickThroughForm();
             fillForm.FormBorderStyle = FormBorderStyle.None;
             fillForm.StartPosition = FormStartPosition.Manual;
@@ -466,7 +466,7 @@ namespace DrmMaskApp
             fillForm.TopMost = true;
             fillForm.ShowInTaskbar = false;
             fillForm.BackColor = Color.Black;
-            // DWM'nin pencereyi çizmesi ama kullanıcının neredeyse hiç görmemesi için %1 opaklık
+            // DWM'nin pencereyi Ã§izmesi ama kullanÄ±cÄ±nÄ±n neredeyse hiÃ§ gÃ¶rmemesi iÃ§in %1 opaklÄ±k
             fillForm.Opacity = 0.01; 
             
             fillForm.HandleCreated += FillForm_HandleCreated;
@@ -481,7 +481,7 @@ namespace DrmMaskApp
         public new void Show()
         {
             fillForm.Show();
-            base.Show(); // Çerçeveyi üstte göster
+            base.Show(); // Ã‡erÃ§eveyi Ã¼stte gÃ¶ster
         }
 
         public new void Close()
@@ -492,13 +492,13 @@ namespace DrmMaskApp
 
         private void FillForm_HandleCreated(object sender, EventArgs e)
         {
-            // Yayında siyah (DRM maskesi) olarak görünmesi için WDA_MONITOR
+            // YayÄ±nda siyah (DRM maskesi) olarak gÃ¶rÃ¼nmesi iÃ§in WDA_MONITOR
             NativeMethods.SetWindowDisplayAffinity(fillForm.Handle, NativeMethods.WDA_MONITOR);
         }
 
         private void MaskForm_HandleCreated(object sender, EventArgs e)
         {
-            // Çerçevenin OBS'te hiç görünmemesi için WDA_EXCLUDEFROMCAPTURE
+            // Ã‡erÃ§evenin OBS'te hiÃ§ gÃ¶rÃ¼nmemesi iÃ§in WDA_EXCLUDEFROMCAPTURE
             NativeMethods.SetWindowDisplayAffinity(this.Handle, NativeMethods.WDA_EXCLUDEFROMCAPTURE);
         }
 
@@ -538,3 +538,4 @@ namespace DrmMaskApp
         public const int WS_EX_TRANSPARENT = 0x20;
     }
 }
+

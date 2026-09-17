@@ -4,12 +4,12 @@
   <a href="#türkçe"><img src="https://flagcdn.com/w40/tr.png" width="36" height="24" alt="Türkçe"></a>
 </div>
 
-# DrmMasker
+# StreamMask
 
 <a id="english"></a>
 ## 🇺🇸 English
 
-DrmMasker is a lightweight Windows desktop application that allows you to select a specific area of your screen and hide it from streaming and screen recording software (like OBS, Discord, etc.).
+StreamMask is a lightweight Windows desktop application that allows you to select a specific area of your screen and hide it from streaming and screen recording software (like OBS, Discord, etc.).
 Using the Windows WDA_MONITOR feature, the masked area appears as a solid black box on your stream, while you can still see and interact with the content completely transparently.
 
 ### Features
@@ -28,9 +28,9 @@ You can easily compile the project from source using the built-in .NET Framework
 1. Open the Developer Command Prompt or add the directory containing csc.exe (e.g., C:\Windows\Microsoft.NET\Framework\v4.0.30319) to your system PATH.
 2. Navigate to the project directory and run the following command:
    `cmd
-   csc.exe /target:winexe /out:DrmMask.exe Program.cs
+   csc.exe /target:winexe /out:StreamMask.exe Program.cs
    `
-3. Run the generated DrmMask.exe.
+3. Run the generated StreamMask.exe.
 
 ### Usage
 
@@ -46,7 +46,7 @@ You can easily compile the project from source using the built-in .NET Framework
 <a id="türkçe"></a>
 ## 🇹🇷 Türkçe
 
-DrmMasker, ekranınızın belirli bir alanını seçerek o bölgeyi yayın ve ekran kayıt programlarından (OBS vb.) gizlemenizi sağlayan bir masaüstü uygulamasıdır. 
+StreamMask, ekranınızın belirli bir alanını seçerek o bölgeyi yayın ve ekran kayıt programlarından (OBS vb.) gizlemenizi sağlayan bir masaüstü uygulamasıdır. 
 Bu program, Windows'un WDA_MONITOR özelliğini kullanarak maskelenen alanın yayınlanan ekranda siyah görünmesini sağlarken, sizin o alanı (neredeyse tamamen saydam olarak) görmeye devam etmenize olanak tanır.
 
 ### Özellikler
@@ -65,9 +65,9 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 1. Geliştirici Komut İstemini (Developer Command Prompt) açın veya csc.exe'nin bulunduğu dizini (örneğin C:\Windows\Microsoft.NET\Framework\v4.0.30319) sistem yolunuza (PATH) ekleyin.
 2. Proje dizinine giderek aşağıdaki komutu çalıştırın:
    `cmd
-   csc.exe /target:winexe /out:DrmMask.exe Program.cs
+   csc.exe /target:winexe /out:StreamMask.exe Program.cs
    `
-3. Oluşan DrmMask.exe dosyasını çalıştırın.
+3. Oluşan StreamMask.exe dosyasını çalıştırın.
 
 ### Kullanım
 
@@ -77,6 +77,7 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 4. Alan seçildikten sonra ilgili bölge yayına siyah gidecek, siz ise ince bir çerçeve göreceksiniz.
 5. Maskeyi kaldırmak için kısayol tuşuna tekrar basın.
 6. Kısayol veya renk ayarını değiştirmek için sistem tepsisindeki ikona sağ tıklayıp **Ayarlar**'a girebilirsiniz.
+
 
 
 
