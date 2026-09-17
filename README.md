@@ -23,6 +23,12 @@ Using the Windows WDA_MONITOR feature, the masked area appears as a solid black 
 
 
 
+### Security & VirusTotal
+
+[![VirusTotal](https://img.shields.io/badge/VirusTotal-Scan_Result-blue)](https://www.virustotal.com/gui/file/2239991d1685bd806582455f0522b22992e9c9a286ba070047634baea492fbb1)
+
+**Note on "False Positives":** Since this application uses low-level Windows APIs to hide windows from screen capture (SetWindowDisplayAffinity) and registers global keyboard shortcuts (RegisterHotKey), some heuristic antivirus engines may flag it as suspicious. This is a common **false positive** for open-source tools manipulating screen captures without an expensive digital certificate. The source code is entirely open for you to review and compile yourself!
+
 ### Build and Installation
 
 You can easily compile the project from source using the built-in .NET Framework:
@@ -62,6 +68,12 @@ Bu program, Windows'un WDA_MONITOR özelliğini kullanarak maskelenen alanın ya
 
 
 
+### Güvenlik & VirusTotal
+
+[![VirusTotal](https://img.shields.io/badge/VirusTotal-Tarama_Sonucu-blue)](https://www.virustotal.com/gui/file/2239991d1685bd806582455f0522b22992e9c9a286ba070047634baea492fbb1)
+
+**"Yanlış Alarm (False Positive)" Hakkında Not:** Bu uygulama, pencereleri ekran kaydından gizlemek için düşük seviyeli Windows API'leri (SetWindowDisplayAffinity) kullandığı ve arka planda global klavye kısayollarını (RegisterHotKey) dinlediği için bazı antivirüsler tarafından şüpheli olarak işaretlenebilir (False Positive). Dijital bir imza sertifikası olmayan ve ekran kartına müdahale eden açık kaynaklı programlarda bu durum çok normaldir. Kaynak kodları tamamen açıktır, dilediğiniz gibi inceleyip kendi bilgisayarınızda derleyebilirsiniz!
+
 ### Kurulum ve Derleme
 
 Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
@@ -81,6 +93,7 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 4. Alan seçildikten sonra ilgili bölge yayına siyah gidecek, siz ise ince bir çerçeve göreceksiniz.
 5. Maskeyi kaldırmak için kısayol tuşuna tekrar basın.
 6. Kısayol veya renk ayarını değiştirmek için sistem tepsisindeki ikona sağ tıklayıp **Ayarlar**'a girebilirsiniz.
+
 
 
 
