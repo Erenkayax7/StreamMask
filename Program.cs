@@ -95,7 +95,21 @@ namespace StreamMaskApp
         private bool isMasking = false;
         private SettingsForm settingsFormInstance = null;
 
-        public AppConfig Config { get; private set; }
+                public AppConfig Config { get; private set; }
+
+        public static void OptimizeMemory()
+        {
+            try
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                {
+                    NativeMethods.SetProcessWorkingSetSize(System.Diagnostics.Process.GetCurrentProcess().Handle, -1, -1);
+                }
+            }
+            catch { }
+        }
 
         public AppContext()
         {
@@ -190,8 +204,7 @@ namespace StreamMaskApp
         {
             if (selectionForm != null)
             {
-                selectionForm.Close();
-                selectionForm = null;
+                selectionForm.Close(); selectionForm.Dispose(); selectionForm = null;
             }
 
             if (rect.Width > 10 && rect.Height > 10)
@@ -206,8 +219,7 @@ namespace StreamMaskApp
         {
             if (maskForm != null)
             {
-                maskForm.Close();
-                maskForm = null;
+                maskForm.Close(); maskForm.Dispose(); maskForm = null; OptimizeMemory();
             }
             isMasking = false;
         }
@@ -274,7 +286,8 @@ namespace StreamMaskApp
 
             InitializeComponents();
             ApplyTheme(tempTheme);
-            this.KeyDown += SettingsForm_KeyDown;
+                        this.KeyDown += SettingsForm_KeyDown;
+            this.FormClosed += (s, e) => AppContext.OptimizeMemory();
         }
 
         private void InitializeComponents()
@@ -652,7 +665,8 @@ namespace StreamMaskApp
             this.FormClosing += (s, e) => {
                 if (fillForm != null)
                 {
-                    fillForm.Close();
+                                        fillForm.Close();
+                    fillForm.Dispose();
                     fillForm = null;
                 }
             };
@@ -699,9 +713,13 @@ namespace StreamMaskApp
         public const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
         public const int WS_EX_LAYERED = 0x80000;
-        public const int WS_EX_TRANSPARENT = 0x20;
+                public const int WS_EX_TRANSPARENT = 0x20;
+
+        [DllImport("kernel32.dll")]
+        public static extern bool SetProcessWorkingSetSize(IntPtr process, int minimumWorkingSetSize, int maximumWorkingSetSize);
     }
 }
+
 
 
 
