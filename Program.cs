@@ -12,6 +12,10 @@ namespace StreamMaskApp
         [STAThread]
         static void Main()
         {
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (s, e) => { File.AppendAllText("crash.log", DateTime.Now + " ThreadException: " + e.Exception.ToString() + Environment.NewLine); };
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => { File.AppendAllText("crash.log", DateTime.Now + " UnhandledException: " + e.ExceptionObject.ToString() + Environment.NewLine); };
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             try
@@ -20,7 +24,7 @@ namespace StreamMaskApp
             }
             catch (Exception ex)
             {
-                File.WriteAllText("crash.log", ex.ToString());
+                File.AppendAllText("crash.log", DateTime.Now + " MainCatch: " + ex.ToString() + Environment.NewLine);
             }
         }
     }
@@ -204,7 +208,7 @@ namespace StreamMaskApp
         {
             if (selectionForm != null)
             {
-                selectionForm.Close(); selectionForm.Dispose(); selectionForm = null;
+                selectionForm.Close(); selectionForm = null;
             }
 
             if (rect.Width > 10 && rect.Height > 10)
@@ -219,7 +223,7 @@ namespace StreamMaskApp
         {
             if (maskForm != null)
             {
-                maskForm.Close(); maskForm.Dispose(); maskForm = null; OptimizeMemory();
+                maskForm.Close(); maskForm = null; OptimizeMemory();
             }
             isMasking = false;
         }
@@ -572,6 +576,7 @@ namespace StreamMaskApp
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
+            base.OnMouseUp(e);
             if (isDragging)
             {
                 isDragging = false;
@@ -587,7 +592,6 @@ namespace StreamMaskApp
             {
                 context.OnSelected(Rectangle.Empty);
             }
-            base.OnMouseUp(e);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -719,6 +723,9 @@ namespace StreamMaskApp
         public static extern bool SetProcessWorkingSetSize(IntPtr process, int minimumWorkingSetSize, int maximumWorkingSetSize);
     }
 }
+
+
+
 
 
 
