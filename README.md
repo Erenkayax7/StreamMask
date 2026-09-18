@@ -23,6 +23,10 @@ Using the Windows WDA_MONITOR feature, the masked area appears as a solid black 
 - **Aggressive Memory Optimization (Anti-Leak):** Automatically trims its working set RAM usage down to ~1-2 MB while idle in the background. Uses strict Garbage Collection and unmanaged resource disposal to prevent memory leaks over time.
 - **Stream Security:** The masked region appears as a solid black box in capture tools like OBS and Discord, preventing leaks. The mask border is completely invisible to the stream.
 
+### Settings UI
+
+![StreamMask Settings UI](assets/settings_ui.png)
+
 
 
 ### VirusTotal Result
@@ -70,6 +74,10 @@ Bu program, Windows'un WDA_MONITOR özelliğini kullanarak maskelenen alanın ya
 - **Agresif Bellek Optimizasyonu (Anti-Leak):** Arka planda beklerken Windows'un SetProcessWorkingSetSize API'sini kullanarak RAM kullanımını **1-2 MB** seviyelerine indirir. Gelişmiş çöp toplayıcı (Garbage Collector) komutlarıyla yıllarca açık kalsa bile Memory Leak (bellek sızıntısı) yaşatmaz.
 - **Yayın Güvenliği:** Maskelenen bölge, OBS ve Discord gibi kayıt araçlarında tamamen kapkaranlık (siyah) bir kutu olarak belirir ve içeriğin sızmasını kesin olarak engeller. Çerçevenin kendisi ise yayına gitmez.
 
+### Ayarlar Arayüzü
+
+![StreamMask Ayarlar Arayüzü](assets/settings_ui.png)
+
 
 
 ### VirusTotal Sonucu
@@ -97,6 +105,7 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 4. Alan seçildikten sonra ilgili bölge yayına siyah gidecek, siz ise ince bir çerçeve göreceksiniz.
 5. Maskeyi kaldırmak için kısayol tuşuna tekrar basın.
 6. Kısayol veya renk ayarını değiştirmek için sistem tepsisindeki ikona sağ tıklayıp **Ayarlar**'a girebilirsiniz.
+
 
 
 
