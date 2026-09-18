@@ -14,12 +14,14 @@ Using the Windows WDA_MONITOR feature, the masked area appears as a solid black 
 
 ### Features
 
-- **Quick Selection:** Press the customizable hotkey (default: Ctrl + Shift + Z) and draw a rectangle on your screen to mask an area.
-- **System Tray Integration:** The app runs silently in the background and is accessible via the system tray.
-- **Customizable Settings:** Double-click the tray icon or right-click and select "Settings" to:
-  - Change the masking hotkey.
-  - Customize the color of the selection border (visible only to you).
-- **Stream Security:** The masked region appears as a solid black box in capture tools, preventing leaks. The border itself is completely invisible to the stream.
+- **Quick Selection:** Press the single or combination hotkey you defined (default: Ctrl + Shift + Z) and draw a rectangle on your screen to mask an area instantly.
+- **Modern User Interface:** Flat and modern UI with both **Dark** and **Light** themes. Includes a *Live Preview* box that shows exactly how your mask will look.
+- **Customizable Settings:** Access the modern settings panel via the system tray to:
+  - Assign any key combination by simply pressing the keys on your keyboard.
+  - Customize the border color using the color palette.
+  - Adjust the **border thickness** (1px to 10px) with a slider.
+- **Aggressive Memory Optimization (Anti-Leak):** Automatically trims its working set RAM usage down to ~1-2 MB while idle in the background. Uses strict Garbage Collection and unmanaged resource disposal to prevent memory leaks over time.
+- **Stream Security:** The masked region appears as a solid black box in capture tools like OBS and Discord, preventing leaks. The mask border is completely invisible to the stream.
 
 
 
@@ -59,12 +61,14 @@ Bu program, Windows'un WDA_MONITOR özelliğini kullanarak maskelenen alanın ya
 
 ### Özellikler
 
-- **Hızlı Seçim:** Belirlediğiniz kısayol tuşuna (varsayılan: Ctrl + Shift + Z) basarak ekranda maskelemek istediğiniz alanı seçebilirsiniz.
-- **Sistem Tepsisi Desteği:** Program arka planda, sistem tepsisinde (System Tray) çalışır.
-- **Özelleştirilebilir Ayarlar:** Sistem tepsisindeki ikona çift tıklayarak veya sağ tıklayıp "Ayarlar" menüsünden:
-  - Maskeleme kısayol tuşunu değiştirebilirsiniz.
-  - Sizin ekranınızda görünen seçim çerçevesinin rengini dilediğiniz gibi ayarlayabilirsiniz.
-- **Yayın Güvenliği:** Maskelenen bölge, kayıt araçlarında tamamen siyah bir kutu olarak belirir ve içeriğin sızmasını engeller. Çerçevenin kendisi ise yayına gitmez.
+- **Hızlı Seçim:** Tekli veya çoklu kombinasyonla atadığınız kısayola basıp (varsayılan: Ctrl + Shift + Z) ekranınızda bir kutu çizerek saniyeler içinde o bölgeyi maskeleyebilirsiniz.
+- **Modern Arayüz:** Windows 10 tarzı düz (flat), **Koyu (Siyah)** ve **Açık (Beyaz)** tema destekli yeni nesil arayüz. Maskenizin nasıl görüneceğini anlık gösteren *Canlı Önizleme* paneli içerir.
+- **Gelişmiş Ayarlar:** Sistem tepsisi ikonuna çift tıklayarak ulaşabileceğiniz menüden:
+  - Kısayol butonuna basıp klavyeden dilediğiniz tuşları tuşlayarak anında atama yapabilirsiniz.
+  - Sadece sizin gördüğünüz çerçevenin rengini renk paletinden seçebilirsiniz.
+  - Çerçevenin kalınlığını (1px - 10px arası) kaydırmalı çubukla (slider) ayarlayabilirsiniz.
+- **Agresif Bellek Optimizasyonu (Anti-Leak):** Arka planda beklerken Windows'un SetProcessWorkingSetSize API'sini kullanarak RAM kullanımını **1-2 MB** seviyelerine indirir. Gelişmiş çöp toplayıcı (Garbage Collector) komutlarıyla yıllarca açık kalsa bile Memory Leak (bellek sızıntısı) yaşatmaz.
+- **Yayın Güvenliği:** Maskelenen bölge, OBS ve Discord gibi kayıt araçlarında tamamen kapkaranlık (siyah) bir kutu olarak belirir ve içeriğin sızmasını kesin olarak engeller. Çerçevenin kendisi ise yayına gitmez.
 
 
 
@@ -93,6 +97,7 @@ Proje kaynak koddan .NET Framework ile kolayca derlenebilir:
 4. Alan seçildikten sonra ilgili bölge yayına siyah gidecek, siz ise ince bir çerçeve göreceksiniz.
 5. Maskeyi kaldırmak için kısayol tuşuna tekrar basın.
 6. Kısayol veya renk ayarını değiştirmek için sistem tepsisindeki ikona sağ tıklayıp **Ayarlar**'a girebilirsiniz.
+
 
 
 
