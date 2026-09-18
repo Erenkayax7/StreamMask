@@ -678,7 +678,7 @@ namespace StreamMaskApp
             using (Pen pen = new Pen(borderColor, borderThickness))
             {
                 pen.Alignment = PenAlignment.Inset;
-                e.Graphics.DrawRectangle(pen, 0, 0, this.Width, this.Height);
+                e.Graphics.DrawRectangle(pen, 0, 0, this.Width - 1, this.Height - 1);
             }
         }
     }
@@ -702,6 +702,7 @@ namespace StreamMaskApp
         public const int WS_EX_TRANSPARENT = 0x20;
     }
 }
+
 
 
 
