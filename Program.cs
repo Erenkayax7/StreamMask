@@ -658,7 +658,7 @@ namespace StreamMaskApp
             fillForm.TopMost = true;
             fillForm.ShowInTaskbar = false;
             
-            // WDA_MONITOR requires Opacity=0.01 and BackColor=Black to appear solid black on OBS
+            // WDA_MONITOR with TransparencyKey=Color.Lime ensures the window is solid black in OBS but 100% transparent to the user
             fillForm.BackColor = Color.Lime;
             fillForm.TransparencyKey = Color.Lime;
 
@@ -670,7 +670,6 @@ namespace StreamMaskApp
                 if (fillForm != null)
                 {
                                         fillForm.Close();
-                    fillForm.Dispose();
                     fillForm = null;
                 }
             };
@@ -723,6 +722,7 @@ namespace StreamMaskApp
         public static extern bool SetProcessWorkingSetSize(IntPtr process, int minimumWorkingSetSize, int maximumWorkingSetSize);
     }
 }
+
 
 
 
